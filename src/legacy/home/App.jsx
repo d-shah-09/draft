@@ -106,16 +106,6 @@ const config = (() => {
       revealHold: 260, // ms pause before the CTA pops in
     },
 
-    /* ---------------------------------------------------------------- INTRO */
-    intro: {
-      // assets/intro-scene.mp4 is 7.07s long and loops, so this safety timer is
-      // the real exit. Raise it if you swap in a longer clip — it should be a
-      // little *longer* than the clip so a normal playthrough finishes on the
-      // clip's own `ended` event rather than being cut off.
-      duration: 7400,
-      rememberKey: "cb2_intro_seen",
-    },
-
     /* ---------------------------------------------------------------- AUDIO
      Three tracks, played as one chain (see audio.js):
        can    → the moment the sardine can leaves the slingshot
@@ -6868,243 +6858,6 @@ function HorizontalScroller({ reduced = false, children }) {
   );
 }
 
-/* ====================== components/IntroOverlay.jsx ======================== */
-/* ==========================================================================
-   IntroOverlay.jsx
-   --------------------------------------------------------------------------
-   The intro *cutscene*: assets/intro-scene.mp4 plays full-bleed behind a light
-   scrim with a yellow SKIP button bottom-right, then it fades/zooms straight
-   into the level — no hard cut, and no logo animation / word assembly /
-   tagline / loading bar on the way.
-
-   The video carries its own timing, so this component mostly has to:
-     • play it muted + inline so autoplay is allowed everywhere
-     • finish on SKIP, on the video's own end, or after CONFIG.intro.duration
-     • play on every load / reload of the home page
-     • hand over to the level *immediately* so the two zoom together while the
-       overlay is still fading
-   ========================================================================== */
-
-const CLIP = assetUrl("intro-scene.mp4");
-
-function markSeen() {
-  try {
-    sessionStorage.setItem(CONFIG.intro.rememberKey, "1");
-  } catch {
-    /* private mode — the intro simply plays again next visit */
-  }
-}
-
-/**
- * Grab the first decoded frame and use it as the poster, so there is always
- * something to look at even when the clip refuses to start (see tryPlay).
- */
-function freezePoster(v) {
-  if (v.dataset.posterDone) return;
-  try {
-    const c = document.createElement("canvas");
-    c.width = v.videoWidth || 2;
-    c.height = v.videoHeight || 2;
-    c.getContext("2d").drawImage(v, 0, 0, c.width, c.height);
-    v.poster = c.toDataURL("image/jpeg", 0.7);
-  } catch {
-    /* tainted / cross-origin clip — the element keeps its own first frame */
-  }
-  v.dataset.posterDone = "1";
-}
-
-/**
- * The cutscene plays on every load / reload of the home page, as requested.
- * (`?intro=1` is kept for parity but is now redundant.)
- */
-function shouldPlay() {
-  return true;
-}
-
-function IntroOverlay({ reduced = false, onDone }) {
-  const videoRef = useRef(null);
-  const onDoneRef = useRef(onDone);
-
-  // Keep the callback fresh without re-running the cutscene effect.
-  useEffect(() => {
-    onDoneRef.current = onDone;
-  }, [onDone]);
-
-  const doneRef = useRef(false);
-  const startedRef = useRef(false);
-
-  const [open, setOpen] = useState(() => shouldPlay(reduced));
-  const [leaving, setLeaving] = useState(false);
-  const [instant, setInstant] = useState(false);
-  const [skipVisible, setSkipVisible] = useState(false);
-
-  const finish = useCallback((instantExit) => {
-    if (doneRef.current) return;
-    doneRef.current = true;
-    markSeen();
-    setInstant(!!instantExit);
-    setLeaving(true);
-    try {
-      videoRef.current?.pause();
-    } catch {
-      /* ignore */
-    }
-    /*
-      Hand over straight away. The overlay is still fading (and scaling) out on
-      top of the level zooming in, which is what makes the two read as one
-      continuous move rather than a cut.
-    */
-    onDoneRef.current?.(!!instantExit);
-    window.setTimeout(() => setOpen(false), instantExit ? 420 : 820);
-  }, []);
-
-  /* ---- "we are not playing it" — already seen, or reduced motion ------- */
-  useEffect(() => {
-    if (open) return;
-    if (doneRef.current) return;
-    doneRef.current = true;
-    markSeen();
-    onDoneRef.current?.(true);
-  }, [open]);
-
-  /* ---- the clip itself ------------------------------------------------- */
-  useEffect(() => {
-    if (!open) return undefined;
-
-    const video = videoRef.current;
-    const timers = [];
-    const listeners = [];
-
-    const on = (target, type, fn, opts) => {
-      if (!target) return;
-      target.addEventListener(type, fn, opts);
-      listeners.push([target, type, fn, opts]);
-    };
-    const later = (ms, fn) => timers.push(window.setTimeout(fn, ms));
-
-    /** Show the SKIP button almost immediately so it is always reachable. */
-    later(120, () => setSkipVisible(true));
-
-    if (video) {
-      video.muted = true; // required for autoplay in every browser
-      video.volume = 0;
-      video.playsInline = true;
-
-      on(video, "ended", () => finish(false));
-      on(video, "error", () => {
-        console.info("[CB2] intro cutscene unavailable, skipping it");
-        finish(true);
-      });
-      on(video, "loadeddata", () => freezePoster(video));
-
-      /*
-        Start the clip, tolerating refusal.
-
-        Chrome pauses *video-only* media (an mp4 with no audio track) whenever
-        the tab is hidden or the window is occluded, and rejects play() with an
-        AbortError. That is not fatal — it resolves itself the moment the page
-        is visible — so we retry on visibilitychange and on the first
-        interaction instead of bailing out and flashing a black screen.
-      */
-      const tryPlay = () => {
-        if (doneRef.current || !video || startedRef.current) return;
-        let p;
-        try {
-          p = video.play();
-        } catch {
-          return; // very old browser: the still frame + SKIP carries the intro
-        }
-        if (!p || !p.then) {
-          startedRef.current = true;
-          return;
-        }
-        p.then(
-          () => {
-            startedRef.current = true;
-          },
-          () => {
-            /* refused — a later visibilitychange / interaction will retry */
-          },
-        );
-      };
-
-      on(document, "visibilitychange", () => {
-        if (!doneRef.current && !document.hidden) tryPlay();
-      });
-      ["pointerdown", "keydown", "touchstart"].forEach((t) =>
-        on(window, t, tryPlay, { once: true, passive: true }),
-      );
-
-      tryPlay();
-    }
-
-    on(window, "keydown", (e) => {
-      if (doneRef.current) return;
-      if (e.key === "Escape" || e.key === "Enter" || e.key === " ") {
-        e.preventDefault();
-        finish(false);
-      }
-    });
-
-    // safety net: never let a stuck clip trap the visitor
-    later(CONFIG.intro.duration, () => finish(false));
-
-    return () => {
-      timers.forEach(clearTimeout);
-      listeners.forEach(([t, type, fn, opts]) =>
-        t.removeEventListener(type, fn, opts),
-      );
-      startedRef.current = false;
-    };
-  }, [open, finish]);
-
-  if (!open) return null;
-
-  const cls = [
-    "intro",
-    leaving ? "is-leaving" : "",
-    instant ? "is-instant" : "",
-  ]
-    .filter(Boolean)
-    .join(" ");
-
-  return (
-    <div
-      className={cls}
-      role="dialog"
-      aria-label="Code Bounty 2.0 intro cutscene"
-    >
-      <video
-        className="intro__video"
-        ref={videoRef}
-        src={CLIP}
-        muted
-        loop
-        playsInline
-        preload="auto"
-        aria-hidden="true"
-      />
-
-      <div className="intro__scrim" aria-hidden="true" />
-
-      <button
-        className={`intro__skip${skipVisible ? " show-skip" : ""}`}
-        type="button"
-        onClick={() => finish(false)}
-      >
-        <span>SKIP</span>
-        <svg viewBox="0 0 24 24" aria-hidden="true">
-          <path d="M4 12h13M12 6l6 6-6 6" />
-        </svg>
-      </button>
-
-      <p className="sr-only" aria-live="polite">
-        Playing the Code Bounty 2.0 intro cutscene
-      </p>
-    </div>
-  );
-}
-
 /* ============================== App component ============================== */
 /* ==========================================================================
    App.jsx — Code Bounty 2.0
@@ -7140,14 +6893,13 @@ function App({ themeOn, onThemeToggle }) {
     toggleSound,
   } = useGame(canvas, reduced);
 
-  const handleIntroDone = useCallback(() => {
+  /* No intro cutscene any more — hand straight over to the level on mount. */
+  useEffect(() => {
     startLevel();
   }, [startLevel]);
 
   return (
     <>
-      <IntroOverlay reduced={reduced} onDone={handleIntroDone} />
-
       <div className={levelReady ? "app is-ready" : "app"}>
         <HorizontalScroller reduced={reduced}>
           <HeroPanel
