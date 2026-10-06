@@ -1,0 +1,22 @@
+/* Preserved intro animation styles, scoped to the intro section. */
+.intro-section { position: relative; width: 100%; height: 100vh; overflow: hidden; background-image: url('/starting/assets/background.png'); background-size: cover; background-position: center bottom; background-repeat: no-repeat; }
+.ship-wrapper { position: absolute; top: -45px; left: 50%; width: clamp(350px, 32vw, 560px); z-index: 10; transform: translate3d(-100vw,0,0) translateX(-50%); will-change: transform; animation: shipEnter 7.5s cubic-bezier(.35,0,.25,1) forwards; }
+.pig-ship { display:block; width:100%; pointer-events:none; user-select:none; animation: shipBob 1.8s ease-in-out infinite; }
+@keyframes shipBob { 0%,100% { transform:translate3d(0,-15px,0) rotate(-.8deg) } 50% { transform:translate3d(0,15px,0) rotate(.8deg) } }
+@keyframes shipEnter { 0% { transform:translate3d(-100vw,0,0) translateX(-50%) } 65%,71% { transform:translate3d(22vw,0,0) translateX(-50%) } 100% { transform:translate3d(0,0,0) translateX(-50%) } }
+.ship-wrapper.hovering { transform:translate3d(0,0,0) translateX(-50%); animation:none; }
+.nest-container { position:absolute; left:50%; bottom:1%; transform:translateX(-50%) scale(.72); width:clamp(300px,27vw,480px); height:240px; z-index:5; }
+.nest-back,.nest-front { position:absolute; left:50%; height:auto; pointer-events:none; user-select:none; }
+.nest-back { bottom:0; transform:translateX(-50%); width:100%; z-index:1; }
+.nest-front { bottom:18px; transform:translateX(-50%); width:106%; z-index:3; }
+.eggs { position:absolute; left:50%; bottom:42px; width:310px; height:200px; transform:translate3d(-50%,0,0); z-index:2; }
+.egg { position:absolute; width:155px; pointer-events:none; user-select:none; }
+.egg-left { left:0; bottom:30px; transform:rotate(-12deg); } .egg-center { left:50%; bottom:35px; transform:translateX(-50%) scale(1.08); z-index:2; } .egg-right { right:0; bottom:30px; transform:rotate(12deg); }
+.eggs.reacting .egg-left { animation:eggWobbleLeft 1.05s ease-in-out forwards; } .eggs.reacting .egg-center { animation:eggWobbleCenter 1.05s ease-in-out forwards; } .eggs.reacting .egg-right { animation:eggWobbleRight 1.05s ease-in-out forwards; }
+@keyframes eggWobbleLeft { 0%,100%{transform:rotate(-12deg)}25%{transform:translate3d(0,-5px,0) rotate(-18deg)}50%{transform:rotate(-6deg)}75%{transform:translate3d(0,-7px,0) rotate(-16deg)} }
+@keyframes eggWobbleCenter { 0%,100%{transform:translateX(-50%) scale(1.08)}25%{transform:translate3d(-50%,-5px,0) scale(1.08) rotate(6deg)}50%{transform:translateX(-50%) scale(1.08) rotate(-6deg)}75%{transform:translate3d(-50%,-7px,0) scale(1.08) rotate(4deg)} }
+@keyframes eggWobbleRight { 0%,100%{transform:rotate(12deg)}25%{transform:translate3d(0,-5px,0) rotate(18deg)}50%{transform:rotate(6deg)}75%{transform:translate3d(0,-7px,0) rotate(16deg)} }
+.eggs.stealing { animation:eggsToShip 1.3s cubic-bezier(.33,1,.68,1) forwards; }
+@keyframes eggsToShip { from { transform:translate3d(-50%,0,0) scale(1); opacity:1 } to { transform:translate3d(-50%,-500px,0) scale(.48); opacity:0 } }
+.intro-skip { position:absolute; right:2rem; bottom:2rem; z-index:20; border:2px solid #315b37; border-radius:999px; padding:.75rem 1.25rem; background:#b8efbd; color:#173b20; font:700 1rem Arial,sans-serif; cursor:pointer; box-shadow:0 4px 0 #315b37; }
+@media (max-width:768px) { .ship-wrapper{width:420px;top:-15px}.nest-container{width:340px;transform:translateX(-50%) scale(.68)} }

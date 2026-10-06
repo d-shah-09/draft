@@ -1,0 +1,30 @@
+@font-face { font-family:"Angry Birds"; src:url('/fonts/angrybirds/angrybirds-regular.ttf') format('truetype'); font-display:swap; }
+* { box-sizing:border-box; }
+html, body, #root { width:100%; height:100%; margin:0; }
+body { overflow:hidden; }
+.site-shell { width:100%; height:100%; position:relative; overflow:hidden; background:#72c9f3; }
+.horizontal-flow { width:100%; height:100%; display:flex; overflow-x:auto; overflow-y:hidden; scroll-snap-type:x mandatory; scrollbar-width:none; }
+.horizontal-flow::-webkit-scrollbar { display:none; }
+.flow-section { position:relative; flex:0 0 100vw; width:100vw; height:100vh; overflow:hidden; scroll-snap-align:start; }
+.site-header { position:fixed; z-index:1000; top:0; left:0; right:0; height:76px; display:flex; align-items:center; justify-content:space-between; padding:0 2rem; background:linear-gradient(180deg,rgba(16,61,91,.34),transparent); color:#fff; pointer-events:none; }
+.site-header button { pointer-events:auto; border:0; background:transparent; color:inherit; cursor:pointer; font:800 .9rem Nunito,sans-serif; text-shadow:0 2px 3px rgba(0,0,0,.45); }
+.site-brand { font:1.25rem 'Luckiest Guy',sans-serif!important; letter-spacing:.04em; }
+.site-header nav { display:flex; gap:1.2rem; align-items:center; }
+.site-header nav button { opacity:.78; transition:opacity .2s,transform .2s; }
+.site-header nav button:hover,.site-header nav button.active { opacity:1; transform:translateY(-2px); }
+.home-section > *, .timeline-section > * { width:100%; height:100%; }
+.home-section canvas { max-width:none; }
+.timeline-section .game-map { width:100%; height:100%; }
+.prize-section, .faq-section-shell, .registration-section { isolation:isolate; }
+.faq-section-shell { overflow-y:auto; }
+.faq-section-shell > .faq-section { min-height:100%; }
+.registration-section > main { position:relative!important; width:100%; height:100%; }
+.faq-section-shell .faq-section { width:100%; height:100%; overflow-y:auto; color:#172337; }
+.faq-section-shell .faq-content { max-width:1400px; }
+.faq-section-shell .faq-layout { display:grid; grid-template-columns:minmax(280px,.8fr) minmax(0,1.2fr); align-items:start; }
+.faq-section-shell .faq-king { grid-column:1; }
+.faq-section-shell .faq-list { grid-column:2; }
+.faq-section-shell .faq-card, .faq-section-shell .speech-bubble { color:#172337; }
+.faq-section-shell .faq-card button, .faq-section-shell .faq-card button span { color:#172337; }
+html, body, button, input, textarea, select, .site-header { font-family:"Angry Birds", Arial, sans-serif !important; }
+@media (max-width:800px) { .site-header{padding:0 1rem;height:62px}.site-brand{font-size:1rem!important}.site-header nav{gap:.55rem}.site-header nav button{font-size:.7rem}.site-header nav button:nth-child(2),.site-header nav button:nth-child(3){display:none}.faq-section-shell .faq-layout{display:flex;flex-direction:column}.faq-section-shell .faq-king,.faq-section-shell .faq-list{width:100%} }

@@ -1,0 +1,575 @@
+@import url("https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&family=Lilita+One&display=swap");
+
+:root {
+  --wood-dark: #5b2f0f;
+  --wood: #92501b;
+  --wood-light: #d68a34;
+  --cream: #fff1c6;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#root {
+  width: 100%;
+  min-width: 320px;
+  min-height: 100%;
+  margin: 0;
+}
+
+body {
+  min-height: 100vh;
+  overflow-x: hidden;
+  font-family: "Fredoka", sans-serif;
+  background: #68b946;
+}
+
+button {
+  font: inherit;
+}
+
+/* =========================================================
+   MAIN
+   ========================================================= */
+
+.game-map {
+  position: relative;
+
+  width: 100%;
+  height: 100vh;
+
+  overflow: hidden;
+}
+
+/* =========================================================
+   BACKGROUND
+   ========================================================= */
+
+.map-world {
+  position: relative;
+
+  width: 100%;
+  height: 100vh;
+
+  overflow: hidden;
+
+  background-image: url("/images/event-map-bg.png");
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+}
+
+/* =========================================================
+   TOP UI
+   ========================================================= */
+
+.game-header {
+  position: absolute;
+
+  top: 0;
+  left: 0;
+
+  width: 100%;
+  height: 100%;
+
+  z-index: 1000;
+
+  pointer-events: none;
+}
+
+.sound-button {
+  position: absolute;
+
+  top: 20px;
+  left: 20px;
+
+  z-index: 1001;
+
+  width: 68px;
+  height: 68px;
+
+  margin: 0;
+  padding: 0;
+
+  border: none;
+  outline: none;
+
+  background: transparent;
+
+  cursor: pointer;
+
+  /*
+   * IMPORTANT:
+   * Parent ignores mouse events,
+   * but this button accepts them.
+   */
+  pointer-events: auto;
+
+  transition: transform 0.15s ease;
+}
+.sound-button:hover {
+  transform: scale(1.07);
+}
+
+.sound-button:active {
+  transform: scale(0.92);
+}
+
+.sound-button:focus-visible {
+  outline: 4px solid white;
+
+  outline-offset: 4px;
+
+  border-radius: 50%;
+}
+.sound-icon {
+  display: block;
+
+  width: 100%;
+  height: 100%;
+
+  object-fit: contain;
+
+  pointer-events: none;
+
+  user-select: none;
+
+  -webkit-user-drag: none;
+}
+
+.map-path-layer {
+  position: absolute;
+  z-index: 10;
+
+  /* Tuned to the road already visible in the background */
+  left: 0%;
+  top: 20%;
+  width: 100%;
+
+  aspect-ratio: 2048 / 682;
+  pointer-events: none;
+}
+
+.movement-svg {
+  position: absolute;
+  z-index: 1;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+  pointer-events: none;
+}
+
+/* Completely invisible: JavaScript only uses its geometry. */
+.movement-path {
+  fill: none;
+  stroke: transparent;
+  stroke-width: 1;
+  pointer-events: none;
+}
+
+/* =========================================================
+   LEVELS â€” IMAGE BADGES
+   ========================================================= */
+
+.level-wrapper {
+  position: absolute;
+  z-index: 25;
+  width: 155px;
+  transform: translate(-50%, -50%);
+  text-align: center;
+  pointer-events: none;
+}
+
+.level-button {
+  position: relative;
+  display: block;
+  width: 135px;
+  height: 125px;
+  margin: 0 auto;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  cursor: pointer;
+  pointer-events: auto;
+  transition:
+    transform 0.18s ease,
+    filter 0.18s ease;
+}
+
+.level-button:hover {
+  transform: translateY(-5px) scale(1.07);
+}
+
+.level-button:focus-visible {
+  outline: 4px solid #fff7c7;
+  outline-offset: 5px;
+  border-radius: 50%;
+}
+
+.level-badge-image {
+  position: absolute;
+  z-index: 1;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  pointer-events: none;
+  filter: drop-shadow(0 7px 4px rgba(70, 43, 8, 0.3));
+}
+
+/*
+ * Level number remains inside the badge.
+ * The bird is z-index 40, so on the active level the bird
+ * naturally appears in front of this number.
+ */
+.level-number {
+  position: absolute;
+  z-index: 2;
+  left: 50%;
+  top: 62%;
+  transform: translate(-50%, -50%);
+  font-family: "Lilita One", sans-serif;
+  font-size: 2.85rem;
+  line-height: 1;
+  color: #fff;
+  -webkit-text-stroke: 2px rgba(91, 65, 31, 0.55);
+  text-shadow:
+    0 3px 0 rgba(85, 52, 10, 0.5),
+    0 5px 6px rgba(68, 40, 6, 0.22);
+  pointer-events: none;
+}
+
+.level-button.current {
+  animation: currentBadgeGlow 1.6s ease-in-out infinite;
+}
+
+@keyframes currentBadgeGlow {
+  0%,
+  100% {
+    filter: drop-shadow(0 0 0 rgba(255, 223, 64, 0));
+  }
+
+  50% {
+    filter: drop-shadow(0 0 14px rgba(255, 225, 72, 0.95));
+  }
+}
+
+/* =========================================================
+   EVENT LABEL IMAGE
+   ========================================================= */
+
+.event-sign-image-wrap {
+  position: relative;
+  z-index: 30;
+  width: 150px;
+  margin: -10px auto 0;
+  pointer-events: none;
+}
+
+.event-sign-image {
+  display: block;
+  width: 100%;
+  height: auto;
+  object-fit: contain;
+  filter: drop-shadow(0 5px 3px rgba(65, 37, 8, 0.28));
+}
+
+/* =========================================================
+   BIRD
+   ========================================================= */
+
+.bird {
+  position: absolute;
+  z-index: 110;
+  width: 125px;
+  height: 125px;
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+  will-change: left, top, transform;
+  transition: opacity 0.16s ease;
+}
+
+/* Moves the bird upward so it sits over the badge number. */
+.bird-flipper {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  top: -42px;
+  transition: transform 0.15s ease;
+}
+
+.bird[data-direction="backward"] .bird-flipper {
+  transform: scaleX(-1);
+}
+
+.bird-image {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  filter: drop-shadow(0 7px 5px rgba(40, 35, 10, 0.28));
+  animation: birdIdle 1.5s ease-in-out infinite;
+}
+
+@keyframes birdIdle {
+  0%,
+  100% {
+    transform: translateY(0) rotate(-2deg);
+  }
+
+  50% {
+    transform: translateY(-7px) rotate(2deg);
+  }
+}
+
+.bird-moving .bird-image {
+  animation: none;
+}
+
+.bird-landing .bird-image {
+  animation: birdLanding 0.35s ease;
+}
+
+@keyframes birdLanding {
+  0% {
+    transform: scale(1);
+  }
+
+  35% {
+    transform: scaleX(1.2) scaleY(0.75);
+  }
+
+  65% {
+    transform: scaleX(0.92) scaleY(1.1);
+  }
+
+  100% {
+    transform: scale(1);
+  }
+}
+
+.landing-puff {
+  position: absolute;
+  z-index: -1;
+  width: 135px;
+  height: 65px;
+  left: 50%;
+  top: 30%;
+  opacity: 0;
+  transform: translate(-50%, -50%);
+}
+
+.landing-puff span {
+  position: absolute;
+  color: #fff5a0;
+  font-size: 1.35rem;
+  text-shadow: 0 2px 0 #a9680d;
+}
+
+.landing-puff span:nth-child(1) {
+  left: 3%;
+  top: 10%;
+}
+
+.landing-puff span:nth-child(2) {
+  left: 27%;
+  top: 43%;
+}
+
+.landing-puff span:nth-child(3) {
+  right: 3%;
+  top: 8%;
+}
+
+.landing-puff span:nth-child(4) {
+  right: 27%;
+  top: 43%;
+}
+
+/* =========================================================
+   MOBILE
+   ========================================================= */
+
+@media (max-width: 720px) {
+  .map-world {
+    height: max(850px, 100svh);
+    min-height: 850px;
+    background-position: 46% center;
+  }
+
+  .game-header {
+    top: 14px;
+    left: 14px;
+    right: 14px;
+  }
+
+  .sound-button {
+    width: 49px;
+    height: 49px;
+    border-width: 4px;
+    font-size: 1.2rem;
+  }
+
+  .map-path-layer {
+    left: -38%;
+    top: 30%;
+    width: 176%;
+  }
+
+  .level-wrapper {
+    width: 120px;
+  }
+
+  .level-button {
+    width: 100px;
+    height: 92px;
+  }
+
+  .level-number {
+    font-size: 2.2rem;
+  }
+
+  .event-sign-image-wrap {
+    width: 118px;
+    margin-top: -8px;
+  }
+
+  .bird {
+    width: 95px;
+    height: 95px;
+  }
+
+  .bird-flipper {
+    top: -33px;
+  }
+}
+
+/* =========================================================
+   REDUCED MOTION
+   ========================================================= */
+
+@media (prefers-reduced-motion: reduce) {
+  .bird-image,
+  .level-button.current {
+    animation: none;
+  }
+}
+/* =========================================================
+   EVENT CARD â€” ANCHORED ABOVE ITS LEVEL BUTTON
+   ========================================================= */
+
+.event-popover {
+  position: absolute;
+  z-index: 80;
+  left: 50%;
+  bottom: calc(100% + 18px);
+  width: min(470px, calc(100vw - 28px));
+  transform: translate(-50%, 12px) scale(0.94);
+  transform-origin: center bottom;
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  transition:
+    transform 0.28s cubic-bezier(0.18, 1.25, 0.32, 1),
+    opacity 0.18s ease,
+    visibility 0.18s ease;
+  filter: drop-shadow(0 14px 14px rgba(25, 30, 10, 0.38));
+}
+
+.event-popover-visible {
+  transform: translate(-50%, 0) scale(1);
+  opacity: 1;
+  visibility: visible;
+  pointer-events: auto;
+}
+
+/* Keep the active card above the bird and other level markers. */
+.level-card-open {
+  z-index: 90;
+}
+
+/* Keep the first and last cards fully inside the map viewport. */
+.level-index-0 .event-popover {
+  left: 0;
+  transform-origin: left bottom;
+}
+
+.level-index-0 .event-popover-visible {
+  transform: translate(0, 0) scale(1);
+}
+
+.level-index-4 .event-popover {
+  left: auto;
+  right: 0;
+  transform: translate(0, 12px) scale(0.94);
+  transform-origin: right bottom;
+}
+
+.level-index-4 .event-popover-visible {
+  transform: translate(0, 0) scale(1);
+}
+
+.event-card-image-container {
+  position: relative;
+  width: 100%;
+}
+
+.event-card-image {
+  display: block;
+  width: 100%;
+  height: auto;
+  max-height: min(55vh, 520px);
+  object-fit: contain;
+  user-select: none;
+  pointer-events: none;
+}
+
+.event-card-close {
+  position: absolute;
+  z-index: 5;
+  top: 6%;
+  right: 5%;
+  display: grid;
+  place-items: center;
+  width: clamp(34px, 4.2vw, 52px);
+  height: clamp(34px, 4.2vw, 52px);
+  padding: 0;
+  border: 4px solid #6b300b;
+  border-radius: 50%;
+  background: linear-gradient(#f69327, #c94d0f);
+  color: white;
+  font-family: "Lilita One", sans-serif;
+  font-size: clamp(1.4rem, 2.4vw, 2rem);
+  line-height: 1;
+  cursor: pointer;
+  box-shadow:
+    inset 0 4px 0 rgba(255, 225, 145, 0.3),
+    0 5px 0 #4e2107;
+  transition: transform 0.15s ease;
+}
+
+.event-card-close:hover {
+  transform: scale(1.1) rotate(4deg);
+}
+
+@media (max-width: 720px) {
+  .event-popover {
+    width: min(320px, calc(100vw - 24px));
+    bottom: calc(100% + 12px);
+  }
+
+  .event-card-image {
+    max-height: 42vh;
+  }
+
+  .event-card-close {
+    width: 34px;
+    height: 34px;
+    border-width: 3px;
+    font-size: 1.35rem;
+  }
+}
